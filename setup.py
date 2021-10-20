@@ -28,7 +28,9 @@ setup(
     ],
     packages=["chowder"],
     include_package_data=True,
-    install_requires=[],
+    install_requires=['numpy>=1.21.2',
+                      'torch>=1.9.1',
+                      'matplotlib>=3.4.3'],
     extras_require={
         "dev": dev_deps
     },
