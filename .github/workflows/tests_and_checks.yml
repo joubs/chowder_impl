@@ -1,0 +1,35 @@
+name: Chowder tests and checks
+
+on: push
+
+jobs:
+
+  checks_and_unit_tests:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: [3.7]
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Checkout the code
+        uses: actions/checkout@v2
+
+      - name: Install pip dependencies
+        run: pip install .[dev]
+
+      - name: Static type checking
+        run: mypy .
+
+      - name: Lint
+        run: flake8
+
+      - name: Unit tests
+        run: pytest -s
