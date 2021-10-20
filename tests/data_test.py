@@ -1,7 +1,7 @@
 from pathlib import Path
 from unittest import TestCase
 
-from chowder.data import load_labels_as_dict, find_slide_id_from_filepath, Label
+from chowder.data import load_labels_as_dict, find_slide_id_from_str, Label
 
 RESOURCE_FOLDER = Path(__file__).parent / 'resources'
 
@@ -25,8 +25,8 @@ class DataTest(TestCase):
     def test_good_labels_file_loads_ok(self):
         labels_dict = load_labels_as_dict(TEST_LABELS_CSV)
         self.assertIsNotNone(labels_dict)
-        self.assertTrue('ID_001' in labels_dict.keys())
-        self.assertEqual(labels_dict['ID_001'], Label.HEALTHY)
+        self.assertTrue(1 in labels_dict.keys())
+        self.assertEqual(labels_dict[1], Label.HEALTHY)
 
     # Slide ids
 
@@ -35,6 +35,6 @@ class DataTest(TestCase):
         annotated_filepath = Path('ID_011_annotated.npy')
         wrong_filepath = Path('_wrong_file.npy')
 
-        self.assertEqual('ID_010', find_slide_id_from_filepath(default_filepath))
-        self.assertEqual('ID_011_annotated', find_slide_id_from_filepath(annotated_filepath))
-        self.assertIsNone(find_slide_id_from_filepath(wrong_filepath))
+        self.assertEqual(10, find_slide_id_from_str(default_filepath.stem))
+        self.assertEqual(11, find_slide_id_from_str(annotated_filepath.stem))
+        self.assertIsNone(find_slide_id_from_str(wrong_filepath.stem))
