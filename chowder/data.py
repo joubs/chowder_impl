@@ -13,13 +13,16 @@ from typing import NewType, Dict, Optional, Callable, Sequence
 
 from numpy import ndarray, load
 
-SlideID = NewType('SlideID', str)
+SlideID = NewType('SlideID', int)
 
 
 class Label(Enum):
     HEALTHY = 0
     CANCER = 1
 
+
+LabelDict = Dict[SlideID, Label]
+DataDict = Dict[SlideID, Callable[[], ndarray]]
 
 ID_HEADER = 'ID'
 LABEL_HEADER = 'Target'
@@ -31,7 +34,7 @@ class IllshapedFileException(Exception):
     pass
 
 
-def load_labels_as_dict(labels_filepath: Path) -> Optional[Dict[SlideID, Label]]:
+def load_labels_as_dict(labels_filepath: Path) -> Optional[LabelDict]:
     """ Load the labels from an input csv file respecting the following format:
 
     ---
@@ -49,9 +52,12 @@ def load_labels_as_dict(labels_filepath: Path) -> Optional[Dict[SlideID, Label]]
             reader = csv.DictReader(csv_file)
             if reader.fieldnames and ID_HEADER in reader.fieldnames and LABEL_HEADER in reader.fieldnames:
                 for row in reader:
-                    slide_id = SlideID(row[ID_HEADER])
+                    slide_id = find_slide_id_from_str(row[ID_HEADER])
                     label = Label(int(float(row[LABEL_HEADER])))  # todo: This is ugly
-                    labels_dict[slide_id] = label
+                    if slide_id is not None:
+                        labels_dict[slide_id] = label
+                    else:
+                        logger.warning(f'Wrong ID in row: {row}, label skipped.')
             else:
                 raise IllshapedFileException('The file does not contain the expected headers, loading failed.')
 
@@ -62,7 +68,7 @@ def load_labels_as_dict(labels_filepath: Path) -> Optional[Dict[SlideID, Label]]
     return labels_dict
 
 
-def load_slide_data_as_dict(data_filepaths: Sequence[Path]) -> Dict[SlideID, Callable[[], ndarray]]:
+def load_slide_data_as_dict(data_filepaths: Sequence[Path]) -> DataDict:
     """ load slide data contained in a sequence of files and gather it in a dictionary. The data is not fetched
     from disk, the dictionary maps slide IDs to functions that load the data from disk upon call.
 
@@ -73,8 +79,8 @@ def load_slide_data_as_dict(data_filepaths: Sequence[Path]) -> Dict[SlideID, Cal
 
     for data_filepath in data_filepaths:
         data_fetcher = partial(load, data_filepath)
-        slide_id = find_slide_id_from_filepath(data_filepath)
-        if slide_id:
+        slide_id = find_slide_id_from_str(data_filepath.stem)
+        if slide_id is not None:
             slide_data_dict[slide_id] = data_fetcher
         else:
             logger.warning(f'Missing slide id for filepath: {data_filepath}')
@@ -82,15 +88,15 @@ def load_slide_data_as_dict(data_filepaths: Sequence[Path]) -> Dict[SlideID, Cal
     return slide_data_dict
 
 
-def find_slide_id_from_filepath(slide_data_filepath: Path) -> Optional[SlideID]:
-    """ Match a filename with a slide ID respecting the format 'ID_xxx_any_other_thing_here'.
+def find_slide_id_from_str(slide_id_str: str) -> Optional[SlideID]:
+    """ Match a str with a slide ID respecting the format 'ID_xxx_any_other_thing_here'.
 
-    :param slide_data_filepath: the path of a file containing slide data
-    :return: A slide ID if the filename matches, None otherwise
+    :param slide_id_str: a string containing a slide ID
+    :return: A slide ID if the string matches, None otherwise
     """
-    slide_id_regex = re.compile(r'ID_\d{3}.*')
-    filename = slide_data_filepath.stem
-    if slide_id_regex.match(filename):
-        return SlideID(filename)
+    slide_id_regex = re.compile(r'\d{3}')
+    re_search = slide_id_regex.search(slide_id_str)
+    if re_search:
+        return SlideID(int(re_search.group()))
     else:
         return None

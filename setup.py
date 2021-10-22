@@ -30,7 +30,10 @@ setup(
     include_package_data=True,
     install_requires=['numpy>=1.21.2',
                       'torch>=1.9.1',
-                      'matplotlib>=3.4.3'],
+                      'torchvision>=0.10.1',
+                      'matplotlib>=3.4.3',
+                      'scikit-learn>=1.0',
+                      'tensorboardX>=2.4'],
     extras_require={
         "dev": dev_deps
     },
