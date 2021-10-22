@@ -54,10 +54,10 @@ def load_labels_as_dict(labels_filepath: Path) -> Optional[LabelDict]:
                 for row in reader:
                     slide_id = find_slide_id_from_str(row[ID_HEADER])
                     label = Label(int(float(row[LABEL_HEADER])))  # todo: This is ugly
-                    if slide_id:
+                    if slide_id is not None:
                         labels_dict[slide_id] = label
                     else:
-                        logger.warning(f'Wrong ID in row: {row}, label skipped')
+                        logger.warning(f'Wrong ID in row: {row}, label skipped.')
             else:
                 raise IllshapedFileException('The file does not contain the expected headers, loading failed.')
 
@@ -80,7 +80,7 @@ def load_slide_data_as_dict(data_filepaths: Sequence[Path]) -> DataDict:
     for data_filepath in data_filepaths:
         data_fetcher = partial(load, data_filepath)
         slide_id = find_slide_id_from_str(data_filepath.stem)
-        if slide_id:
+        if slide_id is not None:
             slide_data_dict[slide_id] = data_fetcher
         else:
             logger.warning(f'Missing slide id for filepath: {data_filepath}')
