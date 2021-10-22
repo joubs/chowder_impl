@@ -11,7 +11,7 @@ class DatasetLengthMismatchError(Exception):
 
 
 class ChowderDataset(Dataset):
-    def __init__(self, label_dict: LabelDict, data_dict: DataDict, num_tiles: int):
+    def __init__(self, label_dict: LabelDict, data_dict: DataDict, num_tiles: int, num_features: int):
         """ Dataset object to be used for training.
 
         :param label_dict: A dict containing labels indexed by slide id
@@ -21,6 +21,7 @@ class ChowderDataset(Dataset):
         self._label_dict = label_dict
         self._data_dict = data_dict
         self._num_tiles = num_tiles
+        self._num_features = num_features
 
         if set(label_dict.keys()) != set(data_dict.keys()):
             raise DatasetLengthMismatchError('The data and labels dict do not contain the same IDs as keys.')
@@ -31,7 +32,7 @@ class ChowderDataset(Dataset):
         return len(self._label_dict.keys())
 
     def __getitem__(self, index: int) -> Tuple[ndarray, int]:
-        data_placeholder = zeros([self._num_tiles, 2048]).astype('float32')
+        data_placeholder = zeros([self._num_tiles, self._num_features]).astype('float32')
 
         slide_id = self._slide_ids[index]
         array_fetcher = self._data_dict[slide_id]
