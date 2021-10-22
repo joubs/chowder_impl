@@ -47,8 +47,8 @@ class ChowderModel(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         # 1d Conv
-        b, c, l = x.shape
-        x = reshape(x, [b * c, 1, l])
+        b, c, l_in = x.shape
+        x = reshape(x, [b * c, 1, l_in])
         x = self._conv1(x)
         x = reshape(x, [b, c])
 
