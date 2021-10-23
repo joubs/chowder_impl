@@ -8,7 +8,9 @@ README = (HERE / "README.md").read_text()
 dev_deps = [
     "flake8==4.0.1",
     "mypy==0.910",
-    "pytest==6.2.5"
+    "pytest==6.2.5",
+    "pdocs>=1.1.1",
+    "pygments>=2.10.0"
 ]
 
 setup(
