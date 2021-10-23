@@ -12,9 +12,9 @@ import tensorboardX
 import torch
 from torch.utils.data import DataLoader
 
-from chowder.data import load_labels_as_dict, load_slide_data_as_dict
+from chowder.data import load_labels_as_dict, load_slide_data_as_dict, save_prediction_on_disk
 from chowder.dataset import ChowderDataset
-from chowder.model import BaselineModel
+from chowder.model import ChowderModel
 from chowder.training import TrainingParams, train, evaluate
 
 logger = logging.getLogger(__name__)
@@ -29,11 +29,14 @@ TRAIN_INPUT_FEATURES_FOLDER = Path('train_input') / 'resnet_features'
 TEST_INPUT_FEATURES_FOLDER = Path('test_input') / 'resnet_features'
 EXPERIMENT_FOLDER = Path(__file__).parent / 'experiments'
 
+TEST_OUTPUT_CSV_FILENAME = 'test_output.csv'
+
 NUM_TILES = 1000
 NUM_FEATURES = 2048
 LR = 1e-3
 NUM_EPOCHS = 30
 TRAIN_BATCH_SIZE = 10
+R = 5
 
 
 def main():
@@ -53,7 +56,7 @@ def main():
     logger.info(f"Training using {device}")
 
     # Get model
-    model = BaselineModel(NUM_FEATURES)
+    model = ChowderModel(NUM_FEATURES, R=R)
 
     # Create experiment directory
     exp_dir = EXPERIMENT_FOLDER
@@ -71,13 +74,13 @@ def main():
     train_filename_seq = list((root_data_folder / TRAIN_INPUT_FEATURES_FOLDER).glob('*'))
     train_slide_data_dict = load_slide_data_as_dict(train_filename_seq)
 
-    train_dataset = ChowderDataset(train_labels_dict, train_slide_data_dict, NUM_TILES)
+    train_dataset = ChowderDataset(train_labels_dict, train_slide_data_dict, NUM_TILES, NUM_FEATURES)
 
     test_labels_dict = load_labels_as_dict(root_data_folder / TEST_LABELS_FILENAME)
     test_filename_seq = list((root_data_folder / TEST_INPUT_FEATURES_FOLDER).glob('*'))
     test_slide_data_dict = load_slide_data_as_dict(test_filename_seq)
 
-    test_dataset = ChowderDataset(test_labels_dict, test_slide_data_dict, NUM_TILES)
+    test_dataset = ChowderDataset(test_labels_dict, test_slide_data_dict, NUM_TILES, NUM_FEATURES)
 
     train_data_loader = DataLoader(train_dataset, batch_size=TRAIN_BATCH_SIZE, shuffle=True)
     test_data_loader = DataLoader(test_dataset, batch_size=len(test_dataset), shuffle=False)
@@ -86,7 +89,7 @@ def main():
 
     training_params = TrainingParams(
         device=str(device),
-        log_interval=10,
+        log_interval=5,
         tb_writer=tb_writer,
         num_epochs=NUM_EPOCHS,
         eval_interval=1,
@@ -97,12 +100,14 @@ def main():
     loss_fn = torch.nn.NLLLoss()
 
     best_auc_score = -1
+
     for epoch in range(0, training_params.num_epochs):
         train(training_params, model, train_data_loader, optimizer, loss_fn, epoch)
 
         if epoch % training_params.eval_interval == 0:
-            auc_score = evaluate(training_params, model, test_data_loader, loss_fn, epoch)
+            auc_score, predictions = evaluate(training_params, model, test_data_loader, loss_fn, epoch)
 
+            # Overwriting the saved output each time in case of early stopping
             if auc_score > best_auc_score:
                 logger.info("Best auc_score found, saving checkpoint\n")
                 best_auc_score = auc_score
@@ -110,6 +115,7 @@ def main():
                     model.state_dict(),
                     Path(training_dir / f"best_auc_score_{model.__class__.__name__}.pt")
                 )
+                save_prediction_on_disk(training_dir / TEST_OUTPUT_CSV_FILENAME, predictions, test_dataset.id_list)
 
 
 if __name__ == '__main__':

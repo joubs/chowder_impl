@@ -1,9 +1,9 @@
-from typing import Tuple
+from typing import Tuple, List
 
 from numpy import ndarray, zeros
 from torch.utils.data import Dataset
 
-from chowder.data import LabelDict, DataDict
+from chowder.data import LabelDict, DataDict, SlideID
 
 
 class DatasetLengthMismatchError(Exception):
@@ -41,3 +41,10 @@ class ChowderDataset(Dataset):
         data_placeholder[:slide_shape[0], :slide_shape[1]] = slide_array  # Todo: this should be tested
         label = self._label_dict[slide_id]
         return data_placeholder, label.value
+
+    @property
+    def id_list(self) -> List[SlideID]:
+        """ The list of slide ids contained in the dataset, which indicates the ordering of the slides
+        :return: A list of slide ids
+        """
+        return self._slide_ids

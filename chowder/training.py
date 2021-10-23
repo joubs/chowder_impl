@@ -2,11 +2,13 @@
 
 # Author: François Joubert <fxa.joubert@gmail.com>
 # License: MIT
+
 import logging
 from dataclasses import dataclass
-from typing import cast
+from typing import cast, Tuple
 
 import torch
+from numpy import ndarray
 from sklearn.metrics import roc_auc_score
 from tensorboardX import SummaryWriter
 from torch import nn
@@ -86,7 +88,7 @@ def train(training_params: TrainingParams, model: nn.Module, train_loader: DataL
 
 
 def evaluate(training_params: TrainingParams, model: nn.Module, test_loader: DataLoader, loss_func: nn.Module,
-             epoch: int) -> float:
+             epoch: int) -> Tuple[float, ndarray]:
     """ Evaluation routine that goes through the testing data and evaluate a previously trained model. It computes the
     roc metric
     :param training_params: A structure containing parameters for the training
@@ -105,9 +107,10 @@ def evaluate(training_params: TrainingParams, model: nn.Module, test_loader: Dat
             test_loss = torch.sum(loss_func(output, target))
             losses_avg_meter.update(test_loss.item(), data.size(0))
 
-    _, index = torch.max(output, dim=1)
+    _, output_classes = torch.max(output, dim=1)
+    prediction = output_classes.numpy()
 
-    roc_metric = roc_auc_score(target.squeeze(0).numpy(), index.numpy())
+    roc_metric = roc_auc_score(target.squeeze(0).numpy(), prediction)
 
     logger.info(
         "\nTest set: Average loss: {:.4f}, AUC: {:.4f}\n".format(
@@ -117,4 +120,4 @@ def evaluate(training_params: TrainingParams, model: nn.Module, test_loader: Dat
 
     training_params.tb_writer.add_scalar("%s_loss" % 'test', losses_avg_meter.average, epoch)
     training_params.tb_writer.add_scalar("%s_acc" % 'test', roc_metric, epoch)
-    return roc_metric
+    return roc_metric, prediction
