@@ -1,3 +1,4 @@
+import logging
 from typing import Tuple, List
 
 from numpy import ndarray, zeros
@@ -10,9 +11,14 @@ class DatasetLengthMismatchError(Exception):
     pass
 
 
+logger = logging.getLogger(__name__)
+
+
 class ChowderDataset(Dataset):
     def __init__(self, label_dict: LabelDict, data_dict: DataDict, num_tiles: int, num_features: int):
         """ Dataset object to be used for training.
+
+        IMPORTANT: The slide data is zero padded to obtain an homogeneous number of tiles for every slide.
 
         :param label_dict: A dict containing labels indexed by slide id
         :param data_dict: A dict containing data fetchers indexed by slide id
@@ -36,9 +42,14 @@ class ChowderDataset(Dataset):
 
         slide_id = self._slide_ids[index]
         array_fetcher = self._data_dict[slide_id]
-        slide_array: ndarray = array_fetcher()[:, 3:].astype('float32')  # The three first numbers are slide headers
+        try:
+            slide_array: ndarray = array_fetcher()[:, 3:].astype('float32')  # The three first numbers are slide headers
+        except (IOError, ValueError):
+            logger.error(f"The slide data with corresponding ID could not be read from disk: {slide_id}, "
+                         f"exiting application.")
+            raise SystemExit()
         slide_shape = slide_array.shape
-        data_placeholder[:slide_shape[0], :slide_shape[1]] = slide_array  # Todo: this should be tested
+        data_placeholder[:slide_shape[0], :slide_shape[1]] = slide_array
         label = self._label_dict[slide_id]
         return data_placeholder, label.value
 
