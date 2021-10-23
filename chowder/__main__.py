@@ -90,7 +90,6 @@ def main():
     training_params = TrainingParams(
         device=str(device),
         log_interval=5,
-        tb_writer=tb_writer,
         num_epochs=NUM_EPOCHS,
         eval_interval=1,
         learning_rate=LR
@@ -102,10 +101,13 @@ def main():
     best_auc_score = -1
 
     for epoch in range(0, training_params.num_epochs):
-        train(training_params, model, train_data_loader, optimizer, loss_fn, epoch)
+        average_loss = train(training_params, model, train_data_loader, optimizer, loss_fn, epoch)
+        tb_writer.add_scalar("%s_loss" % 'train', average_loss, epoch)
 
         if epoch % training_params.eval_interval == 0:
-            auc_score, predictions = evaluate(training_params, model, test_data_loader, loss_fn, epoch)
+            average_loss, auc_score, predictions = evaluate(training_params, model, test_data_loader, loss_fn)
+            tb_writer.add_scalar("%s_loss" % 'test', average_loss, epoch)
+            tb_writer.add_scalar("%s_acc" % 'test', auc_score, epoch)
 
             # Overwriting the saved output each time in case of early stopping
             if auc_score > best_auc_score:

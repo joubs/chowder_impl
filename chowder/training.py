@@ -10,7 +10,6 @@ from typing import cast, Tuple
 import torch
 from numpy import ndarray
 from sklearn.metrics import roc_auc_score
-from tensorboardX import SummaryWriter
 from torch import nn
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
@@ -22,7 +21,6 @@ logger = logging.getLogger(__name__)
 class TrainingParams:
     device: str
     log_interval: int
-    tb_writer: SummaryWriter
     num_epochs: int
     eval_interval: int
     learning_rate: float
@@ -49,7 +47,7 @@ class AverageMeter:
 
 
 def train(training_params: TrainingParams, model: nn.Module, train_loader: DataLoader, optimizer: Optimizer,
-          loss_func: nn.Module, epoch: int) -> None:
+          loss_func: nn.Module, epoch: int) -> float:
     """ Training routine for one epoch that goes through the dataset and performs the loss optimisation over batches
     of data.
 
@@ -59,7 +57,7 @@ def train(training_params: TrainingParams, model: nn.Module, train_loader: DataL
     :param optimizer: The optimisation algorithm implementation
     :param loss_func: The loss function module
     :param epoch: The current epoch
-    :return: Nothing
+    :return: The average loss on the training step
     """
     model.train()
     losses_avg_meter = AverageMeter()
@@ -83,12 +81,11 @@ def train(training_params: TrainingParams, model: nn.Module, train_loader: DataL
                     losses_avg_meter.average,
                 )
             )
+    return losses_avg_meter.average
 
-    training_params.tb_writer.add_scalar("%s_loss" % 'train', losses_avg_meter.average, epoch)
 
-
-def evaluate(training_params: TrainingParams, model: nn.Module, test_loader: DataLoader, loss_func: nn.Module,
-             epoch: int) -> Tuple[float, ndarray]:
+def evaluate(training_params: TrainingParams, model: nn.Module, test_loader: DataLoader, loss_func: nn.Module) -> \
+        Tuple[float, float, ndarray]:
     """ Evaluation routine that goes through the testing data and evaluate a previously trained model. It computes the
     roc metric
     :param training_params: A structure containing parameters for the training
@@ -96,7 +93,10 @@ def evaluate(training_params: TrainingParams, model: nn.Module, test_loader: Dat
     :param test_loader: A data loader containing the testing data
     :param loss_func: The loss function module
     :param epoch: The current epoch
-    :return: roc_metric: the computed AUC score
+    :return:
+      average_loss: the average loss over the test set
+      roc_metric: the computed AUC score
+      predictions: the predictions over the test set
     """
     losses_avg_meter = AverageMeter()
     model.eval()
@@ -110,14 +110,12 @@ def evaluate(training_params: TrainingParams, model: nn.Module, test_loader: Dat
     _, output_classes = torch.max(output, dim=1)
     prediction = output_classes.numpy()
 
-    roc_metric = roc_auc_score(target.squeeze(0).numpy(), prediction)
-
+    auc_score = roc_auc_score(target.squeeze(0).numpy(), prediction)
+    average_loss = losses_avg_meter.average
     logger.info(
         "\nTest set: Average loss: {:.4f}, AUC: {:.4f}\n".format(
-            losses_avg_meter.average, roc_metric
+            average_loss, auc_score
         )
     )
 
-    training_params.tb_writer.add_scalar("%s_loss" % 'test', losses_avg_meter.average, epoch)
-    training_params.tb_writer.add_scalar("%s_acc" % 'test', roc_metric, epoch)
-    return roc_metric, prediction
+    return average_loss, auc_score, prediction
