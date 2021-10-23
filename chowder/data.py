@@ -103,16 +103,16 @@ def find_slide_id_from_str(slide_id_str: str) -> Optional[SlideID]:
 
 
 def save_prediction_on_disk(filepath: Path, predictions: ndarray, slide_ids_list: List[SlideID]) -> None:
-    """ Store evaluation results in a csv file. 
-    
-    /!\\ The prediction array and the list should point to the same underlying data, i.e the order of 
+    """ Store evaluation results in a csv file.
+
+    IMPORTANT: The prediction array and the list should point to the same underlying data, i.e the order of
     the slides should correspond.
-    
+
     :param filepath: The path to the csv file to be written to
     :param predictions: The array of prediction output by the model
     :param slide_ids_list: The corresponding slide IDs
-    :return: Nothing 
-    """""
+    :return: Nothing
+    """
 
     if len(predictions) != len(slide_ids_list):
         logger.error('The predictions array and the slide IDs list do not match. Aborting... ')
