@@ -38,14 +38,14 @@ The proposed application should:
 | Model              | AUC score |
 | :-----------------:|----------:|
 | Baseline+maxpool   |    0.65   |
-| CHOWDER (R=5)      |    0.84   |
+| CHOWDER (R=5)      |    0.857  |
 | CHOWDER (R=10)     |    0.837  |
 
 
 # Suggestions of improvement.
 
 - Add a proper config file 
-- Try the 3 fold cross-validation to improve performance
+- Try the 3 fold cross-validation 
 - Test on another dataset to assess the robustness
 - More hyperparameters optimisation(grid search or random search)
 - Add more unit tests 

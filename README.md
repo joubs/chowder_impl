@@ -17,8 +17,11 @@ The repository contains a report (`report.md`) containing:
   - some experimental results.
   - some suggestions of improvement.
   
-It also contains a csv prediction files (`test_output.csv`) containing the best result obtained with CHOWDER on the 
-Camelyon16 dataset. The "Run the application" section explains how to generate a new prediction file.  
+It also contains a `result` folder, which contains the required csv prediction files (`test_output.csv`) obtained with 
+CHOWDER on the Camelyon16 dataset. The folder also contains the trained model under Pytorch custom format, and training
+Tensorboard events. 
+
+The "Run the application" section explains how to generate a new prediction file.  
 
 ## Installation 
 
