@@ -2,12 +2,13 @@
 
 The CHOWDER algorithm falls under the scope of weak supervised learning. Its primary objective is to predict a binary 
 label (Healthy VS Cancer) out of a given image. 
-It operates over WSI images, that have a very high resolution. While the data is annotated at the image level, the input 
-data is sampled in tiles. The algorithm exploits tiles descriptors to predict a label at the image level. 
+It is designed to operate over WSI images, that have a very high resolution. While the data is annotated at the image 
+level, the network is fed with tiles obtained after sampling the original images. The algorithm exploits tiles 
+descriptors to predict a label at the image level. 
 
 The algorithm can also be used to predict a label at the tile level, a usage could be for example to help a clinician to
 annotate a dataset by suggesting suspicious regions on a WSI image.
-  
+
 
 # Design choices and specifications of the code.
 
@@ -44,8 +45,10 @@ The proposed application should:
 
 # Suggestions of improvement.
 
+- Add some visualisation routines (the ROC curve, but also the data during training at different steps)
 - Add a proper config file 
 - Try the 3 fold cross-validation 
+- Improve the model implementation by using drop out, l2 regularisation, changing activation function(?)
 - Test on another dataset to assess the robustness
 - More hyperparameters optimisation(grid search or random search)
 - Add more unit tests 
