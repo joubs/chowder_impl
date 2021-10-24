@@ -50,4 +50,3 @@ class TrainingTest(TestCase):
 
         for key, val in step_0_parameters.items():
             self.assertTrue(equal(val, step_1_parameters[key]))
-
