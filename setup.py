@@ -8,7 +8,9 @@ README = (HERE / "README.md").read_text()
 dev_deps = [
     "flake8==4.0.1",
     "mypy==0.910",
-    "pytest==6.2.5"
+    "pytest==6.2.5",
+    "pdocs>=1.1.1",
+    "pygments>=2.10.0"
 ]
 
 setup(
@@ -33,7 +35,8 @@ setup(
                       'torchvision>=0.10.1',
                       'matplotlib>=3.4.3',
                       'scikit-learn>=1.0',
-                      'tensorboardX>=2.4'],
+                      'tensorboardX>=2.4',
+                      'tensorboard>=2.7.0'],
     extras_require={
         "dev": dev_deps
     },

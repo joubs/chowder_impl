@@ -1,12 +1,14 @@
 from pathlib import Path
 from unittest import TestCase
 
-from chowder.data import load_labels_as_dict, find_slide_id_from_str, Label
+from chowder.data import load_labels_as_dict, find_slide_id_from_str, Label, load_slide_data_as_dict, SlideID
 
 RESOURCE_FOLDER = Path(__file__).parent / 'resources'
 
 TEST_LABELS_CSV = RESOURCE_FOLDER / 'test_labels.csv'
 ILLSHAPED_LABELS_CSV = RESOURCE_FOLDER / 'illshaped_labels.csv'
+
+ID_18_SLIDE_DATA = RESOURCE_FOLDER / 'ID_018.npy'
 
 
 class DataTest(TestCase):
@@ -27,6 +29,20 @@ class DataTest(TestCase):
         self.assertIsNotNone(labels_dict)
         self.assertTrue(1 in labels_dict.keys())
         self.assertEqual(labels_dict[1], Label.HEALTHY)
+
+    # Slide data
+
+    def test_good_npy_array_file_loads_okay(self):
+        slide_data_dict = load_slide_data_as_dict([ID_18_SLIDE_DATA])
+        self.assertTrue(18 in slide_data_dict.keys())
+
+        # Check data is fetched without raising
+        data_fetcher = slide_data_dict[SlideID(18)]
+        data_fetcher()
+
+    def test_missing_file_implies_no_entry_in_dict(self):
+        slide_data_dict = load_slide_data_as_dict([Path('path/to/data')])
+        self.assertTrue(len(slide_data_dict.keys()) == 0)
 
     # Slide ids
 

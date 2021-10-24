@@ -9,7 +9,7 @@ import re
 from enum import Enum
 from functools import partial
 from pathlib import Path
-from typing import NewType, Dict, Optional, Callable, Sequence
+from typing import NewType, Dict, Optional, Callable, Sequence, List
 
 from numpy import ndarray, load
 
@@ -44,7 +44,7 @@ def load_labels_as_dict(labels_filepath: Path) -> Optional[LabelDict]:
     ---
 
     :param labels_filepath: a path to a csv input file containing slide ids and corresponding labels
-    :return: a dict which maps an id to its label
+    :return: a dict which maps a slide ID to its label
     """
     labels_dict: Dict[SlideID, Label] = {}
     try:
@@ -53,7 +53,7 @@ def load_labels_as_dict(labels_filepath: Path) -> Optional[LabelDict]:
             if reader.fieldnames and ID_HEADER in reader.fieldnames and LABEL_HEADER in reader.fieldnames:
                 for row in reader:
                     slide_id = find_slide_id_from_str(row[ID_HEADER])
-                    label = Label(int(float(row[LABEL_HEADER])))  # todo: This is ugly
+                    label = Label(int(float(row[LABEL_HEADER])))
                     if slide_id is not None:
                         labels_dict[slide_id] = label
                     else:
@@ -69,7 +69,7 @@ def load_labels_as_dict(labels_filepath: Path) -> Optional[LabelDict]:
 
 
 def load_slide_data_as_dict(data_filepaths: Sequence[Path]) -> DataDict:
-    """ load slide data contained in a sequence of files and gather it in a dictionary. The data is not fetched
+    """ Load slide data contained in a sequence of files and gather it in a dictionary. The data is not fetched
     from disk, the dictionary maps slide IDs to functions that load the data from disk upon call.
 
     :param data_filepaths: the path of a file containing slide data
@@ -100,3 +100,31 @@ def find_slide_id_from_str(slide_id_str: str) -> Optional[SlideID]:
         return SlideID(int(re_search.group()))
     else:
         return None
+
+
+def save_prediction_on_disk(filepath: Path, predictions: ndarray, slide_ids_list: List[SlideID]) -> None:
+    """ Store evaluation results in a csv file.
+
+    IMPORTANT: The prediction array and the list should point to the same underlying data, i.e the order of
+    the slides should correspond.
+
+    :param filepath: The path to the csv file to be written to
+    :param predictions: The array of prediction output by the model
+    :param slide_ids_list: The corresponding slide IDs
+    :return: Nothing
+    """
+
+    if len(predictions) != len(slide_ids_list):
+        logger.error('The predictions array and the slide IDs list do not match. Aborting... ')
+        return None
+    try:
+        with open(str(filepath), 'w', newline='') as csvfile:
+            fieldnames = [ID_HEADER, LABEL_HEADER]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+
+            for index, prediction in enumerate(predictions):
+                slide_id = slide_ids_list[index]
+                writer.writerow({ID_HEADER: f'ID_{slide_id:03d}', LABEL_HEADER: float(prediction)})
+    except OSError as er:
+        logger.error(f'The test output csv file could not be written: {er}')
