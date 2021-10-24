@@ -37,6 +37,8 @@ mypy chowder                 # Run the static type checking
 flake8                       # Run the lint tool
 ```
 
+** By default, Pytorch is installed with cpuonly version. One can run the application to train on GPU without changing
+the code by installing the CUDA compatible version, please check [this page to do so.](https://pytorch.org/get-started/locally/)
 ## Run the application
 
 The main application is registered as an entry point. After installation, it can be run with the following command:

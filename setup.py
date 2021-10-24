@@ -35,7 +35,8 @@ setup(
                       'torchvision>=0.10.1',
                       'matplotlib>=3.4.3',
                       'scikit-learn>=1.0',
-                      'tensorboardX>=2.4'],
+                      'tensorboardX>=2.4',
+                      'tensorboard>=2.7.0'],
     extras_require={
         "dev": dev_deps
     },
