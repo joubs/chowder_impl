@@ -7,8 +7,7 @@ This repository contains an implementation of the CHOWDER method described in
 The code is written in Python3+ and has been tested with version 3.7
 It uses the Pytorch framework.
 
-The package provides a main application that performs both training and evaluation on a given dataset following 
-a certain folder tree structure (as the provided data folder does).
+The package provides a main application that performs both training and evaluation on the Camelyon16 public dataset.
 
 ## Required items
 The repository contains a report (`report.md`) containing:
@@ -37,15 +36,19 @@ mypy chowder                 # Run the static type checking
 flake8                       # Run the lint tool
 ```
 
-** By default, Pytorch is installed with cpuonly version. One can run the application to train on GPU without changing
-the code by installing the CUDA compatible version, please check [this page to do so.](https://pytorch.org/get-started/locally/)
+**By default, Pytorch is installed with cpuonly version. One can run the application to train on GPU without changing
+the code by installing the CUDA compatible version, please check [this page to do so.](https://pytorch.org/get-started/locally/)**
+
 ## Run the application
 
 The main application is registered as an entry point. After installation, it can be run with the following command:
 
 ```chowder_train --data_folder /path/to/the/root/data/folder ```
 
-NOTE: the medical data folder can be pasted directly at the root of the repository which is expected by default. 
+The application expects a path to the `data` folder that was provided alongside the technical test. It relies 
+on its precise tree structure.
+
+**NOTE**: the medical data folder can be pasted directly at the root of the repository which is expected by default. 
 
 The main application is written in `chowder/__main__.py`, one could also launch the application by running this file.
 
