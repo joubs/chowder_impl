@@ -15,7 +15,7 @@ dev_deps = [
 
 setup(
     name="chowder_impl",
-    version="0.0.0",
+    version="1.0.0",
     description="Implementation of the CHOWDER model for histopathological image analysis.",
     long_description=README,
     long_description_content_type="text/markdown",
