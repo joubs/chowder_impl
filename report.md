@@ -1,13 +1,13 @@
 # Description of the implemented algorithm.
 
-The CHOWDER algorithm falls under the scope of weak supervised learning. Its primary objective is to predict a binary 
+The CHOWDER algorithm falls under the scope of weak supervised learning. A first objective is to predict a binary 
 label (Healthy VS Cancer) out of a given image. 
 It is designed to operate over WSI images, that have a very high resolution. While the data is annotated at the image 
 level, the network is fed with tiles obtained after sampling the original images. The algorithm exploits tiles 
 descriptors to predict a label at the image level. 
 
-The algorithm can also be used to predict a label at the tile level, a usage could be for example to help a clinician to
-annotate a dataset by suggesting suspicious regions on a WSI image.
+The algorithm can also be used to predict a label at the tile level (segmentation), a usage could be for example to 
+help a clinician to annotate a dataset by suggesting suspicious regions on a WSI image.
 
 
 # Design choices and specifications of the code.
